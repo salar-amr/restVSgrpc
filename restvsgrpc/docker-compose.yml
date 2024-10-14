@@ -1,0 +1,53 @@
+version: "3.7"
+services:
+  grpc-server:
+    build:
+      context: ./grpc_dotnet_server/GrpcService
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      # - ASPNETCORE_HTTP_PORTS=3000
+      # - ASPNETCORE_URLS=http://+:3000
+    # networks:
+    #   - host    
+  rest-server:
+    build:
+      context: ./rest_dotnet_server/GrpcService
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=3001
+      - ASPNETCORE_URLS=http://+:3001  
+    # networks:
+    #   - host    
+  client:
+    build:
+      context: ./client/Client
+      dockerfile: Dockerfile
+    depends_on:
+      - grpc-server
+      - rest-server
+    ports:
+      - "5035:5035"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=5035
+      - ASPNETCORE_URLS=http://+:5035  
+      - GRPC_SERVER_ADDR=http://host.docker.internal:8080
+      - REST_SERVER_ADDR=http://host.docker.internal:3001
+    # networks:
+    #   - host  
+# networks:
+#   default:
+#     driver: host
+#     driver_opts:
+#       com.docker.network.bridge.host_binding_ipv4: "127.0.0.1"     
+
+
+#docker run --env=ASPNETCORE_HTTP_PORTS=3001 --env=ASPNETCORE_URLS=http://+:3001 --env=DOTNET_RUNNING_IN_CONTAINER=true -p 3001:3001 restvsgrpc-rest-server:latest
+#docker run --env=DOTNET_RUNNING_IN_CONTAINER=true -p 8080:8080 restvsgrpc-grpc-server:latest
+#docker run --env=DOTNET_RUNNING_IN_CONTAINER=true --env=GRPC_SERVER_ADDR=http://localhost:8080 --env=REST_SERVER_ADDR=http://localhost:300 --env=ASPNETCORE_HTTP_PORTS=5035 --env=ASPNETCORE_URLS=http://+:5035 --add-host host.docker.internal:host-gateway -p 5035:5035 restvsgrpc-client:latest

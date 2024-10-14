@@ -1,0 +1,26 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: restvsgrpc
+build:
+  artifacts:
+    - image: restvsgrpc-client-minikube
+      runtimeType: netcore
+      context: client/Client
+      docker:
+        dockerfile: Dockerfile
+    - image: restvsgrpc-grpc-server-minikube
+      runtimeType: netcore
+      context: grpc_dotnet_server/GrpcService
+      docker:
+        dockerfile: Dockerfile
+    - image: restvsgrpc-rest-server-minikube
+      runtimeType: netcore
+      context: rest_dotnet_server/GrpcService
+      docker:
+        dockerfile: Dockerfile
+manifests:
+  rawYaml:
+    - infra/client.yml
+    - infra/grpc-server.yml
+    - infra/http-server.yml

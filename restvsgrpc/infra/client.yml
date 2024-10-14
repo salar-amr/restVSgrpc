@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client
+  labels:
+    app: client
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: client
+  template:
+    metadata:
+      labels:
+        app: client  
+      annotations:
+        linkerd.io/inject: enabled      
+    spec:
+      containers:
+      - name: client
+        image: restvsgrpc-client:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5035        
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: ASPNETCORE_HTTP_PORTS
+          value: "5035"
+        - name: ASPNETCORE_URLS
+          value: "http://+:5035"
+        - name: GRPC_SERVER_ADDR
+          value: "http://grpc-server-service:8080"
+        - name: REST_SERVER_ADDR
+          value: "http://http-server-service:3001"         
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: client-service
+spec:
+  selector:
+    app: client
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 5035
+  type: LoadBalancer
